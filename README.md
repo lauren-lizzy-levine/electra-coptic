@@ -1,3 +1,57 @@
+# Coptic Experiments:
+
+## Notes:
+* make vocab file (included in current repo - vocab is characters)
+* make train file (included in current repo)
+* requires tensorflow 1.15 (so python 3.6)
+* param configs between data creation, pretraining, and finetuning must be consistent
+* will run out of RAM if the batch size is large (even just 50?)
+
+## Ongoing issues:
+* still need to configure to run on GPU
+* unsure what to do for fine tuning (currently leveraging the BIOES token classification task)
+* the resulting model is tf and needs to be converted to pt to be able to leverage the hugging face classes and I don't think I have it working properly (see details below)
+
+## So far (testing with small data snippet):
+(see details for the individual scripts below in main README)
+
+### Build pretraining data:
+```
+python build_pretraining_dataset.py --corpus-dir raw_data_snippet --vocab-file data/vocab.txt --output-dir data/pretrain_tfrecords --max-seq-length 128 --no-lower-case
+```
+
+### Pretraining:
+```
+python run_pretraining.py --data-dir data --model-name coptic_model_v1
+```
+
+### Finetuning with sequence tagging:
+(I don't know if this is a reasonable way to attempt finetuning for our purposes. Of the avaliable tasks, it seems the closest. Otherwise, we can attempt to add a new finetuning task for our use case into the code.)
+
+Data for the sequence tagging task must be a particular format (see below). Use ```preprocess_chunk_data.py``` to format the raw data into the chunk data. Snippet data is already avaliable in data/finetuning_data/chunk. 
+
+```
+python run_finetuning.py --data-dir data --model-name coptic_model_v1 --hparams '{"model_size": "small", "task_names": ["chunk"]}'
+
+```
+
+### Using the model:
+
+The result of the previous step is a tensorflow model. I am not sure how to use this version of the modeol. In order to use the huggingface classes, we must convert the model to the pytorch format. This repo incudes a script to do this ```https://github.com/lonePatient/electra_pytorch.git```. First a config file must be created in electra/data/models/coptic_model_v1/finetuning_models/chunk_model_1/config.json (see there for current attempt). Clone the repo outside this repo and run:
+```
+python electra_pytorch/convert_electra_tf_checkpoint_to_pytorch.py --tf_checkpoint_path="electra/data/models/coptic_model_v1/finetuning_models/chunk_model_1" --electra_config_file="electra/data/models/coptic_model_v1/finetuning_models/chunk_model_1/config.json" --pytorch_dump_path="electra/data/models/coptic_model_v1/finetuning_models/chunk_model_1/pytorch_model.bin"
+```
+
+NOTE: In order to run the above I had to skip over certain things in the conversion, and I don't know that it really works. This step is not figured out yet.
+
+Now that the model had been converted, we try to run an example with the following script:
+```
+python prediction_example.py
+```
+
+This examples runs, but clearly does not work, and I'm not sure why. It gives out default labels of 0 and 1 instead of the coptic letters used in the training data for finetuning. Not sure if the way I'm using ElectraForTokenClassification is inappropriate, or if the issue is with the finetuned model. The above has taken a while to figure out and I'm confused at this point. To be continued...
+
+
 # ELECTRA
 
 ## Introduction
