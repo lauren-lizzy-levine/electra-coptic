@@ -37,7 +37,7 @@ python run_finetuning.py --data-dir data --model-name coptic_model_v1 --hparams 
 
 ### Using the model:
 
-The result of the previous step is a tensorflow model. I am not sure how to use this version of the modeol. In order to use the huggingface classes, we must convert the model to the pytorch format. This repo incudes a script to do this ```https://github.com/lonePatient/electra_pytorch.git```. First a config file must be created in electra/data/models/coptic_model_v1/finetuning_models/chunk_model_1/config.json (see there for current attempt). Clone the repo outside this repo and run:
+The result of the previous step is a tensorflow model. I am not sure how to use this version of the model. In order to use the huggingface classes, we must convert the model to the pytorch format. This repo incudes a script to do this ```https://github.com/lonePatient/electra_pytorch.git```. First a config file must be created in electra/data/models/coptic_model_v1/finetuning_models/chunk_model_1/config.json (see there for current attempt). Clone the repo outside this repo and run:
 ```
 python electra_pytorch/convert_electra_tf_checkpoint_to_pytorch.py --tf_checkpoint_path="electra/data/models/coptic_model_v1/finetuning_models/chunk_model_1" --electra_config_file="electra/data/models/coptic_model_v1/finetuning_models/chunk_model_1/config.json" --pytorch_dump_path="electra/data/models/coptic_model_v1/finetuning_models/chunk_model_1/pytorch_model.bin"
 ```
